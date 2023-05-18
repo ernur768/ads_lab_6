@@ -8,29 +8,109 @@ public class J_C3
 
         WeightedGraph<Integer> graph = getGraph(sc);
         int start = sc.nextInt();
-        Map<Integer, Integer> cost = getCost(graph, start);
+        int end = sc.nextInt();
+        Map<Integer, Integer> costs = getCost(graph, start);
+        Map<Integer, Integer> parentTable = getCompleteParentTable(graph, costs, start);
 
-//        Map<Integer, Integer> parent = new HashMap<>();
-//        List<Integer> visited = new ArrayList<>();
+        List<Integer> road = getRoad(parentTable, start, end);
 
-
-        graph.printGraph();
+        System.out.printf("Shortest distance: %d%n", costs.get(end));
+        System.out.print("Shortest path: ");
+        for (int node : road) {
+            System.out.printf("%d ", node);
+        }
         System.out.println();
-        System.out.println(cost);
+    }
 
+    private List<Integer> getRoad(Map<Integer, Integer> parentTable, int start, int end)
+    {
+        List<Integer> road = new ArrayList<>();
+        int node = end;
+
+        while (node != start)
+        {
+            road.add(node);
+            node = parentTable.get(node);
+        }
+        road.add(start);
+
+        Collections.reverse(road);
+        return road;
+    }
+
+    private Map<Integer, Integer> getCompleteParentTable(WeightedGraph<Integer> graph,
+                                                         Map<Integer, Integer> costs,
+                                                         int start)
+    {
+        Map<Integer, Integer> parent = getParentTable(graph, start);
+        List<Integer> visited = new ArrayList<>();
+
+
+        Integer node = findMinCostNode(costs);
+        int cost;
+        int newCost;
+
+        while (node != null)
+        {
+            cost =  costs.get(node);
+            for (int n : graph.getNeighbors(node)) {
+                newCost =  cost + graph.getWeight(node, n);
+                if (costs.get(n) > newCost)
+                {
+                    costs.put(n, newCost);
+                    parent.put(n, node);
+                }
+            }
+            visited.add(node);
+            node = findMinCostNode(costs, visited);
+        }
+
+        return parent;
+    }
+
+    private Integer findMinCostNode(Map<Integer, Integer> cost, List<Integer> visited)
+    {
+        return cost
+                .entrySet()
+                .stream()
+                .filter(e -> !visited.contains(e.getKey()))
+                .min(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).orElse(null);
+    }
+
+    private Integer findMinCostNode(Map<Integer, Integer> cost)
+    {
+        return cost
+                .entrySet()
+                .stream()
+                .min(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).orElse(null);
+    }
+
+    private Map<Integer, Integer> getParentTable(WeightedGraph<Integer> graph, int start)
+    {
+        Map<Integer, Integer> table = new HashMap<>();
+
+        for (int child : graph.getNeighbors(start)) {
+            table.put(child, start);
+        }
+
+        return table;
     }
 
     private Map<Integer, Integer> getCost(WeightedGraph<Integer> graph, int start)
     {
         Map<Integer, Integer> cost = new HashMap<>();
 
-        for (Integer  vert : graph.getKeys()) {
+        for (Integer  vert : graph.getAllNods()) {
             cost.put(vert, Integer.MAX_VALUE);
         }
 
-        for (int vert : graph.getKeys(start)) {
+        for (int vert : graph.getNeighbors(start)) {
             cost.put(vert, graph.getWeight(start, vert));
         }
+
+        cost.remove(start);
 
         return cost;
     }
@@ -49,6 +129,7 @@ public class J_C3
             end = sc.nextInt();
             weight = sc.nextInt();
             graph.add(start, end, weight);
+            graph.computeIfAbsent(end, k -> new HashMap<>());
         }
 
         return graph;

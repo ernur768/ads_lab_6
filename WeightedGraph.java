@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Function;
 
 public class WeightedGraph<T>
 {
@@ -9,14 +10,30 @@ public class WeightedGraph<T>
         this.graph = new HashMap<>();
     }
 
-    public Set<T> getKeys()
+    public void computeIfAbsent(T node, Function<? super T, ? extends Map<T, Integer>> mappingFunction)
+    {
+        graph.computeIfAbsent(node, mappingFunction);
+    }
+
+    public Set<T> getAllNods()
+    {
+        Set<T> all = new HashSet<>(getNods());
+
+        for (T node : getNods()) {
+            all.addAll(getNeighbors(node));
+        }
+
+        return all;
+    }
+
+    public Set<T> getNods()
     {
         return graph.keySet();
     }
 
-    public Set<T> getKeys(T vertex)
+    public Set<T> getNeighbors(T node)
     {
-        return graph.get(vertex).keySet();
+        return graph.get(node).keySet();
     }
 
     public int getWeight(T v1, T v2)
