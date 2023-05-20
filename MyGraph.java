@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class MyGraph<T extends Comparable<T>>
+public class MyGraph<T>
 {
     private final Map<T, Set<T>> graph;
 
@@ -9,6 +9,33 @@ public class MyGraph<T extends Comparable<T>>
         this.graph = new HashMap<>();
     }
 
+    public List<Set<T>> getConnectedComponents()
+    {
+        List<Set<T>> list = new ArrayList<>();
+
+        boolean contains;
+
+        for (T node : graph.keySet()) {
+            contains = false;
+            for (Set<T> set : list) {
+                if (set.contains(node))
+                {
+                    contains = true;
+                    set.addAll(graph.get(node));
+                    break;
+                }
+            }
+
+            if (!contains)
+            {
+                Set<T> newSet = new HashSet<>();
+                newSet.addAll(graph.get(node));
+                list.add(newSet);
+            }
+        }
+
+        return list;
+    }
 
     public List<T> breadthFirstSearch(T start)
     {
@@ -23,6 +50,26 @@ public class MyGraph<T extends Comparable<T>>
             if (!visited.contains(vert))
             {
                 visited.add(vert);
+                queue.addAll(graph.get(vert));
+            }
+        }
+        return visited;
+    }
+
+    public List<T> breadthFirstSearch(T start, T end)
+    {
+        List<T> visited = new ArrayList<>();
+        if (!graph.containsKey(start) || !graph.containsKey(end)) return visited;
+
+        Queue<T> queue = new LinkedList<>();
+        queue.add(start);
+        while (!queue.isEmpty())
+        {
+            T vert = queue.poll();
+            if (!visited.contains(vert))
+            {
+                visited.add(vert);
+                if (vert.equals(end)) break;
                 queue.addAll(graph.get(vert));
             }
         }
